@@ -1,0 +1,16 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/mike/Library/CloudStorage/OneDrive-ITESO/ITESO/Segundo Semestre/Progra Estructurada/Proyecto2/Proyecto2'
+relocations:
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100002688, symSize: 0x34 }
+  - { offsetInCU: 0x41, offset: 0x41, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100002688, symSize: 0x34 }
+  - { offsetInCU: 0x5A, offset: 0x5A, size: 0x8, addend: 0x0, symName: _ClearScreen, symObjAddr: 0x34, symBinAddr: 0x1000026BC, symSize: 0x54 }
+  - { offsetInCU: 0x8C, offset: 0x8C, size: 0x8, addend: 0x0, symName: _validarNumero, symObjAddr: 0x88, symBinAddr: 0x100002710, symSize: 0x68 }
+  - { offsetInCU: 0xB4, offset: 0xB4, size: 0x8, addend: 0x0, symName: _validarLetra, symObjAddr: 0xF0, symBinAddr: 0x100002778, symSize: 0x74 }
+  - { offsetInCU: 0xDC, offset: 0xDC, size: 0x8, addend: 0x0, symName: _tablero, symObjAddr: 0x164, symBinAddr: 0x1000027EC, symSize: 0x180 }
+  - { offsetInCU: 0x166, offset: 0x166, size: 0x8, addend: 0x0, symName: _entradas, symObjAddr: 0x2E4, symBinAddr: 0x10000296C, symSize: 0x5C0 }
+  - { offsetInCU: 0x1C6, offset: 0x1C6, size: 0x8, addend: 0x0, symName: _disparo_IA, symObjAddr: 0x8BC, symBinAddr: 0x100002F44, symSize: 0x104 }
+  - { offsetInCU: 0x20E, offset: 0x20E, size: 0x8, addend: 0x0, symName: _impresion, symObjAddr: 0x9C0, symBinAddr: 0x100003048, symSize: 0xC0 }
+  - { offsetInCU: 0x272, offset: 0x272, size: 0x8, addend: 0x0, symName: _vertical, symObjAddr: 0xA80, symBinAddr: 0x100003108, symSize: 0xAD8 }
+  - { offsetInCU: 0x2E0, offset: 0x2E0, size: 0x8, addend: 0x0, symName: _MenuInicio, symObjAddr: 0x1558, symBinAddr: 0x100003BE0, symSize: 0xF4 }
+...
