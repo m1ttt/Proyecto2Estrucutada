@@ -3,22 +3,34 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define COLUMNAS 8
+#define FILAS 8
+
 //! Funciones protótipo
-int tablero();
-int entradas(int tablero[][7]);
-int disparo_IA(int tablero[][7]);
-int impresion(int tablero[][7]);
-int vertical(int tablero[][7], int barcos);
+void InicioJuego(int jugadores);
+void Impresion(int tablero[][COLUMNAS]);
 void MenuInicio();
 void ClearScreen();
-int validarNumero(int numero);
-int validarLetra(char letra);
+void AcomodarBarcos(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
+                    int jugadores);
+int ValidarNumero(int numero);
+int ValidarLetra(char letra);
+int letraAIndice(char letra);
+void SolicitarEntrada(int *entrada1, int *entrada2);
+void SolicitarOrientacion(int *orientacion);
+void EstablecerBarcos(int tablero[][COLUMNAS], int orientacion, int entrada1,
+                      int entrada2);
+void InicializarTablero(int tableroJuego[FILAS][COLUMNAS]);
+int ValidarOrientacion(int orientacion);
+int VerificadorDeColisiones(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
+                            int jugador, int orientacion, int entrada1,
+                            int entrada2);
+// int disparo_IA(int tablero[][COLUMNAS]);
 
 //! Funcion principal
 int main() {
   ClearScreen();
   MenuInicio();
-  tablero();
   return 0;
 }
 
@@ -28,346 +40,203 @@ void ClearScreen() {
   }
 }
 
-int validarNumero(int numero) {
+int ValidarNumero(int numero) {
   if (numero >= 1 && numero <= 7) {
     return 1;
   } else {
-    printf("Número inválido. Por favor, ingresa un número entre 1 y 7.\n");
+    printf("\nNúmero inválido. Por favor, ingresa un número entre 1 y 7.\n");
     return 0;
   }
 }
 
-int validarLetra(char letra) {
+int ValidarLetra(char letra) {
   letra = toupper(letra);
-  if (letra >= 'A' && letra <= 'F') {
+  if (letra >= 'A' && letra <= 'G') {
     return 1;
   } else {
-    printf("Letra inválida. Por favor, ingresa una letra entre A y F.\n");
+    printf("\nLetra inválida. Por favor, ingresa una letra entre A y F.\n");
+    return 0;
+  }
+}
+// Función para convertir una letra a su correspondiente índice en el tablero
+int letraAIndice(char letra) { return toupper(letra) - 'A' + 1; }
+
+void SolicitarEntrada(int *entrada1, int *entrada2) {
+  char letra;
+  int numero;
+  do {
+    printf("En que coordenada lo quieres? (x-y)\n");
+    fflush(stdin);
+    scanf("%c-%d", &letra, &numero);
+  } while (!ValidarLetra(letra) || !ValidarNumero(numero));
+  *entrada1 = letraAIndice(letra);
+  *entrada2 = numero;
+}
+
+void InicializarTablero(int tableroJuego[FILAS][COLUMNAS]) {
+  for (int i = 0; i < FILAS; i++) {
+    for (int j = 0; j < COLUMNAS; j++) {
+      if (i == 0 && j == 0) {
+        tableroJuego[i][j] = 32; // Espacio en blanco en ASCII
+      } else if (i == 0 && j > 0) {
+        tableroJuego[i][j] = '0' + j; // Números del encabezado
+      } else if (j == 0 && i > 0) {
+        tableroJuego[i][j] = 'A' + i - 1; // Letras del encabezado
+      } else {
+        tableroJuego[i][j] = '0'; // Espacio en blanco
+      }
+    }
+  }
+}
+
+int ValidarOrientacion(int orientacion) {
+  if (orientacion == 1 || orientacion == 2) {
+    return 1;
+  } else {
+    printf("\nOrientación inválida. Por favor, ingresa 1 o 2.\n");
     return 0;
   }
 }
 
-// Funcion para generar tablero
-int tablero() {
-  int tableroJuego[7][7];
-  char numero = 6;
-  char letra = 64;
-  for (int indiceLetra = 0; indiceLetra < 7; indiceLetra++) {
-    for (int indiceNumero = 0; indiceNumero < 7; indiceNumero++) {
-      tableroJuego[indiceLetra][indiceNumero] = 48;
-      tableroJuego[0][indiceLetra] = letra;
-      tableroJuego[indiceNumero][0] = numero;
-      tableroJuego[0][0] = 32;
-      numero++;
-    }
-    letra++;
-  }
-  entradas(tableroJuego);
-  printf("ataque\n");
-  int cantidadDisparos = 0;
-  while (cantidadDisparos < 2) {
-    disparo_IA(tableroJuego);
-    cantidadDisparos++;
-  }
-  impresion(tableroJuego);
-}
-
-// Funcion para ingresar barcos
-int entradas(int tablero[][7]) {
-  int barcos = 0;
-  char entrada1 = 0;
-  int entrada2 = 0;
-  int direccion = 0;
-  while (barcos < 3) {
-    switch (barcos) {
-    case 0:
-      printf("Ingresa el barco de una casilla\n");
-      printf("La letra:");
-      fflush(stdin);
-      scanf("%c", &entrada1);
-      while (!validarLetra(entrada1)) {
-        printf("La letra:");
-        fflush(stdin);
-        scanf("%c", &entrada1);
-      }
-      entrada1 = toupper(entrada1);
-      printf("El numero:");
-      scanf("%d", &entrada2);
-      while (!validarNumero(entrada2)) {
-        printf("El numero:");
-        scanf("%d", &entrada2);
-      }
-      switch (entrada1) {
-      case 'A':
-        entrada1 = 1;
-        break;
-      case 'B':
-        entrada1 = 2;
-        break;
-      case 'C':
-        entrada1 = 3;
-        break;
-      case 'D':
-        entrada1 = 4;
-        break;
-      case 'E':
-        entrada1 = 5;
-        break;
-      case 'F':
-        entrada1 = 6;
-        break;
-      }
-      tablero[entrada2][entrada1] = 254;
-      impresion(tablero);
-      break;
-    case 1:
-      direccion = 0;
-      printf("Ingreso del barco de dos casillas\n");
-      // printf("El barco sera Vertical o Horizontal?:\n");
-      // scanf("%d", direccion);
-      vertical(tablero, barcos);
-      break;
-    case 2:
-      printf("Ingresa el barco de tres casillas\n");
-      printf("Primera letra:");
-      scanf("%c", &entrada1);
-      while (!validarLetra(entrada1)) {
-        printf("Primera letra:");
-        fflush(stdin);
-        scanf("%c", &entrada1);
-      }
-      entrada1 = toupper(entrada1);
-      printf("Primer numero:");
-      scanf("%d", &entrada2);
-      while (!validarNumero(entrada2)) {
-        printf("Primer numero:");
-        scanf("%d", &entrada2);
-      }
-      tablero[entrada1][entrada2] = 254;
-      impresion(tablero);
-
-      printf("Segunda letra:");
-      scanf("%c", &entrada1);
-      while (!validarLetra(entrada1)) {
-        printf("Segunda letra:");
-        fflush(stdin);
-        scanf("%c", &entrada1);
-      }
-      entrada1 = toupper(entrada1);
-      printf("Segundo numero:");
-      scanf("%d", &entrada2);
-      while (!validarNumero(entrada2)) {
-        printf("Segundo numero:");
-        scanf("%d", &entrada2);
-      }
-      tablero[entrada1][entrada2] = 254;
-      impresion(tablero);
-
-      printf("Tercera letra letra:");
-      scanf("%c", &entrada1);
-      while (!validarLetra(entrada1)) {
-        printf("Tercera letra:");
-        fflush(stdin);
-        scanf("%c", &entrada1);
-      }
-      entrada1 = toupper(entrada1);
-      printf("Tercer numero:");
-      scanf("%d", &entrada2);
-      while (!validarNumero(entrada2)) {
-        printf("Tercer numero:");
-        scanf("%d", &entrada2);
-      }
-      tablero[entrada1][entrada2] = 254;
-      impresion(tablero);
-      break;
-
-    default:
-      break;
-    }
-    barcos++;
+void SolicitarOrientacion(int *orientacion) {
+  printf("En que orientacion lo quieres? (1.- Horizontal, 2.- Vertical)\n");
+  scanf("%d", orientacion);
+  while (!ValidarOrientacion(*orientacion)) {
+    scanf("%d", orientacion);
   }
 }
 
-// Funcion para ingresar barcos verticales
-int vertical(int tablero[][7], int barcos) {
-  char entrada1a = 0;
-  int entrada2a = 0;
-  char entrada3 = 0;
-  int entrada4 = 0;
-  printf("Primera letra:");
-  scanf("%c", &entrada1a);
-  while (!validarLetra(entrada1a)) {
-    printf("Primera letra:");
-    fflush(stdin);
-    scanf("%c", &entrada1a);
-  }
-  entrada1a = toupper(entrada1a);
-  printf("Primer numero:");
-  scanf("%d", &entrada2a);
-  while (!validarNumero(entrada2a)) {
-    printf("Primer numero:");
-    scanf("%d", &entrada2a);
-  }
-  if (tablero[entrada1a][entrada2a] == 254) {
-    printf("Lo siento, la posicion no es correcta:\n");
-    printf("Primera letra:");
-    scanf("%c", &entrada1a);
-    while (!validarLetra(entrada1a)) {
-      printf("Primera letra:");
-      fflush(stdin);
-      scanf("%c", &entrada1a);
-    }
-    entrada1a = toupper(entrada1a);
-    printf("Primer numero:");
-    scanf("%d", &entrada2a);
-    while (!validarNumero(entrada2a)) {
-      printf("Primer numero:");
-      scanf("%d", &entrada2a);
-    }
-  }
-  tablero[entrada1a][entrada2a] = 254;
-  switch (barcos) {
+void EstablecerBarcos(int tablero[][COLUMNAS], int orientacion, int entrada1,
+                      int entrada2) {
+  switch (orientacion) {
   case 1:
-    printf("Segunda letra:");
-    scanf("%c", &entrada3);
-    while (!validarLetra(entrada3)) {
-      printf("Segunda letra:");
-      fflush(stdin);
-      scanf("%c", &entrada3);
-    }
-    entrada3 = toupper(entrada3);
-    printf("Segundo numero:");
-    scanf("%d", &entrada4);
-    while (!validarNumero(entrada4)) {
-      printf("Segundo numero:");
-      scanf("%d", &entrada4);
-    }
-    while ((entrada3 != entrada1a && entrada4 != entrada2a + 1) ||
-           (entrada3 != entrada1a && entrada4 != entrada2a - 1)) {
-      printf("Lo siento, la posicion no es correcta:");
-      printf("Segunda letra:");
-      scanf("%c", &entrada1a);
-      while (!validarLetra(entrada1a)) {
-        printf("Segunda letra:");
-        fflush(stdin);
-        scanf("%c", &entrada1a);
-      }
-      entrada1a = toupper(entrada1a);
-      printf("Segundo numero:");
-      scanf("%d", &entrada2a);
-      while (!validarNumero(entrada2a)) {
-        printf("Segundo numero:");
-        scanf("%d", &entrada2a);
-      }
-      impresion(tablero);
-    }
-    tablero[entrada1a][entrada2a] = 254;
-    tablero[entrada3][entrada4] = 254;
+    tablero[entrada1][entrada2] = 'X';
+    tablero[entrada1][entrada2 + 1] = 'X';
+    tablero[entrada1][entrada2 + 2] = 'X';
     break;
   case 2:
-    printf("Segunda letra:");
-    scanf("%c", &entrada3);
-    while (!validarLetra(entrada3)) {
-      printf("Segunda letra:");
-      fflush(stdin);
-      scanf("%c", &entrada3);
-    }
-    entrada3 = toupper(entrada3);
-    printf("Segundo numero:");
-    scanf("%d", &entrada4);
-    while (!validarNumero(entrada4)) {
-      printf("Segundo numero:");
-      scanf("%d", &entrada4);
-    }
-    while ((entrada3 != entrada1a && entrada4 != entrada2a + 1) ||
-           (entrada3 != entrada1a && entrada4 != entrada2a - 1)) {
-      printf("Lo siento, la posicion no es correcta:");
-      printf("Segunda letra:");
-      scanf("%c", &entrada1a);
-      while (!validarLetra(entrada1a)) {
-        printf("Segunda letra:");
-        fflush(stdin);
-        scanf("%c", &entrada1a);
-      }
-      entrada1a = toupper(entrada1a);
-      printf("Segundo numero:");
-      scanf("%d", &entrada2a);
-      while (!validarNumero(entrada2a)) {
-        printf("Segundo numero:");
-        scanf("%d", &entrada2a);
-      }
-      tablero[entrada1a][entrada2a] = 254;
-      impresion(tablero);
-    }
-    tablero[entrada3][entrada4] = 254;
-
-    printf("Tercera letra:");
-    scanf("%c", &entrada1a);
-    while (!validarLetra(entrada1a)) {
-      printf("Tercera letra:");
-      fflush(stdin);
-      scanf("%c", &entrada1a);
-    }
-    entrada1a = toupper(entrada1a);
-    printf("Tercer numero:");
-    scanf("%d", &entrada2a);
-    while (!validarNumero(entrada2a)) {
-      printf("Tercer numero:");
-      scanf("%d", &entrada2a);
-    }
-    while ((entrada1a != entrada3 && entrada2a != entrada4 + 1) ||
-           (entrada1a != entrada3 && entrada2a != entrada4 - 1)) {
-      printf("Lo siento, la posicion no es correcta:");
-      printf("Tercera letra:");
-      scanf("%c", &entrada1a);
-      while (!validarLetra(entrada1a)) {
-        printf("Tercera letra:");
-        fflush(stdin);
-        scanf("%c", &entrada1a);
-      }
-      entrada1a = toupper(entrada1a);
-      printf("Tercer numero:");
-      scanf("%d", &entrada2a);
-      while (!validarNumero(entrada2a)) {
-        printf("Tercer numero:");
-        scanf("%d", &entrada2a);
-      }
-      tablero[entrada1a][entrada2a] = 254;
-      impresion(tablero);
-    }
-    tablero[entrada1a][entrada2a] = 254;
+    tablero[entrada1][entrada2] = 'X';
+    tablero[entrada1 + 1][entrada2] = 'X';
+    tablero[entrada1 + 2][entrada2] = 'X';
     break;
   default:
     break;
   }
 }
 
-// Funcion para disparar
-int disparo_IA(int tablero[][7]) {
-  int numero = 0;
-  int letra = 0;
-  srand(time(NULL));
-  numero = (1 + rand() % 6);
-  letra = (1 + rand() % 6);
-  printf("%d,%d\n", numero, letra);
-  tablero[numero][letra] = 88;
-  if (tablero[numero][letra] == 254) {
-    tablero[numero][letra] = 42;
+void AcomodarBarcos(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
+                    int jugadores) {
+
+  for (int jugador = 1; jugador <= jugadores; jugador++) {
+    int barcos = 3;
+    int orientacion;
+    int entrada1, entrada2;
+
+    printf("Jugador %d es tu turno de acomodar Barcos\n", jugador);
+    printf("Tienes 3 Barcos por acomodar de tamaños (3-3-3)\n");
+
+    while (barcos > 0) {
+      printf("Acomodando barco %d ...Como quieres que este?\n", barcos);
+      SolicitarOrientacion(&orientacion);
+      SolicitarEntrada(&entrada1, &entrada2);
+      if (jugador == 1) {
+        if (VerificadorDeColisiones(tablero1, tablero2, jugador, orientacion,
+                                    entrada1, entrada2)) {
+          EstablecerBarcos(tablero1, orientacion, entrada1, entrada2);
+          barcos--;
+        }
+      } else {
+        if (VerificadorDeColisiones(tablero1, tablero2, jugador, orientacion,
+                                    entrada1, entrada2)) {
+          EstablecerBarcos(tablero1, orientacion, entrada1, entrada2);
+          barcos--;
+        }
+      }
+    }
   }
 }
 
+// // Funcion para disparar
+// int disparo_IA(int tablero[][COLUMNAS]) {
+//   int numero = 0;
+//   int letra = 0;
+//   srand(time(NULL));
+//   numero = (1 + rand() % 6);
+//   letra = (1 + rand() % 6);
+//   printf("%d,%d\n", numero, letra);
+//   tablero[numero][letra] = 88;
+//   if (tablero[numero][letra] == 254) {
+//     tablero[numero][letra] = 42;
+//   }
+// }
+
+int VerificadorDeColisiones(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
+                            int jugador, int orientacion, int entrada1,
+                            int entrada2) {
+  int(*tablero)[COLUMNAS];
+  int(*otroTablero)[COLUMNAS];
+  if (jugador == 1) {
+    tablero = tablero1;
+    otroTablero = tablero2;
+  } else {
+    tablero = tablero2;
+    otroTablero = tablero1;
+  }
+
+  switch (orientacion) {
+  case 1:
+    if (entrada2 + 2 >= COLUMNAS || tablero[entrada1][entrada2] == 'X' ||
+        tablero[entrada1][entrada2 + 1] == 'X' ||
+        tablero[entrada1][entrada2 + 2] == 'X' ||
+        otroTablero[entrada1][entrada2] == 'X' ||
+        otroTablero[entrada1][entrada2 + 1] == 'X' ||
+        otroTablero[entrada1][entrada2 + 2] == 'X') {
+      printf("Colisión detectada o barco fuera del tablero. Por favor, ingresa "
+             "otra coordenada.\n");
+      return 0;
+    }
+    break;
+  case 2:
+    if (entrada1 + 2 >= FILAS || tablero[entrada1][entrada2] == 'X' ||
+        tablero[entrada1 + 1][entrada2] == 'X' ||
+        tablero[entrada1 + 2][entrada2] == 'X' ||
+        otroTablero[entrada1][entrada2] == 'X' ||
+        otroTablero[entrada1 + 1][entrada2] == 'X' ||
+        otroTablero[entrada1 + 2][entrada2] == 'X') {
+      printf("Colisión detectada o barco fuera del tablero. Por favor, ingresa "
+             "otra coordenada.\n");
+      return 0;
+    }
+    break;
+  default:
+    break;
+  }
+  return 1;
+}
+
 // Funcion para imprimir tablero
-int impresion(int tablero[][7]) {
-  for (int i = 0; i < 7; i++) {
-    for (int j = 0; j < 7; j++) {
-      printf("\t%c", tablero[j][i]);
+void Impresion(int tablero[][COLUMNAS]) {
+  for (int i = 0; i < 8; i++) {
+    for (int j = 0; j < 8; j++) {
+      printf("\t%c", tablero[i][j]);
     }
     printf("\n");
   }
 }
 
+// Funcion para iniciar el juego
+void InicioJuego(int jugadores) {
+  int tableroJuego[FILAS][COLUMNAS];
+  int tableroJuego2[FILAS][COLUMNAS];
+  InicializarTablero(tableroJuego);
+  Impresion(tableroJuego);
+  AcomodarBarcos(tableroJuego, tableroJuego2, jugadores);
+  Impresion(tableroJuego);
+}
+
 // Funcion para menu
 void MenuInicio() {
+  int jugadores = 0;
   int opcion;
   printf("Bievenido BattleChip !!!\n");
   printf("Elige tu opción:\n");
@@ -378,13 +247,14 @@ void MenuInicio() {
     scanf("%d", &opcion);
     switch (opcion) {
     case 1:
-      tablero();
+      InicioJuego(jugadores = 1);
       break;
     case 2:
-      // tablero();
+      InicioJuego(jugadores = 2);
       break;
     case 3:
       printf("Gracias por jugar\n");
+      exit(0);
       break;
     default:
       printf("Opción no valida\n");
