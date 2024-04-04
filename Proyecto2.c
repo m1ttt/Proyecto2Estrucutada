@@ -27,13 +27,6 @@ int VerificadorDeColisiones(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
                             int entrada2);
 // int disparo_IA(int tablero[][COLUMNAS]);
 
-//! Funcion principal
-int main() {
-  ClearScreen();
-  MenuInicio();
-  return 0;
-}
-
 void ClearScreen() {
   for (int i = 0; i < 100; i++) {
     printf("\n");
@@ -262,4 +255,11 @@ void MenuInicio() {
       break;
     }
   }
+}
+
+//! Funcion principal
+int main() {
+  ClearScreen();
+  MenuInicio();
+  return 0;
 }
