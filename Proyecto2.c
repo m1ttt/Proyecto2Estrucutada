@@ -58,6 +58,7 @@ int ValidarLetra(char letra) {
     return 0;
   }
 }
+
 // Función para convertir una letra a su correspondiente índice en el tablero
 int letraAIndice(char letra) { return toupper(letra) - 'A' + 1; }
 
