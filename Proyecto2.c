@@ -319,7 +319,6 @@ void InicioJuego(int jugadores) {
   if (jugadores == 1) {
     Acomodo_IA(tableroJuego, tableroJuego2, tableroPrincipal);
   }
-  Impresion(tableroJuego2);
   Juego(tableroJuego, tableroJuego2, tableroPrincipal, jugadores);
 }
 
