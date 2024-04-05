@@ -12,7 +12,7 @@ void Impresion(int tablero[][COLUMNAS]);
 void MenuInicio();
 void ClearScreen();
 void AcomodarBarcos(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
-                    int jugadores);
+                    int tableroPrincipal[][COLUMNAS], int jugadores);
 int ValidarNumero(int numero);
 int ValidarLetra(char letra);
 int letraAIndice(char letra);
@@ -25,6 +25,16 @@ int ValidarOrientacion(int orientacion);
 int VerificadorDeColisiones(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
                             int jugador, int orientacion, int entrada1,
                             int entrada2);
+
+void Acomodo_IA(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
+                int tableroPrincipal[][COLUMNAS]);
+void Disparo(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
+             int tableroPrincipal[][COLUMNAS], int jugador);
+void Juego(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
+           int tableroPrincipal[][COLUMNAS], int jugadores);
+void Disparo_IA(int tablero[][COLUMNAS], int tableroPrincipal[][COLUMNAS]);
+char IndiceALetra(int indice);
+
 // int disparo_IA(int tablero[][COLUMNAS]);
 
 void ClearScreen() {
@@ -55,6 +65,55 @@ int ValidarLetra(char letra) {
 // Función para convertir una letra a su correspondiente índice en el tablero
 int letraAIndice(char letra) { return toupper(letra) - 'A' + 1; }
 
+void Disparo(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
+             int tableroPrincipal[][COLUMNAS], int jugador) {
+  int entrada1, entrada2;
+  printf("Jugador %d es tu turno de atacar...\n", jugador);
+  SolicitarEntrada(&entrada1, &entrada2);
+  if (jugador == 1) {
+    if (tablero2[entrada1][entrada2] == 'X') {
+      printf("Atinaste!!\n");
+      tableroPrincipal[entrada1][entrada2] = 'H';
+      tablero1[entrada1][entrada2] = 'H';
+    } else {
+      printf("Agua!\n");
+      tableroPrincipal[entrada1][entrada2] = 'M';
+      tablero1[entrada1][entrada2] = 'M';
+    }
+  } else if (jugador == 2) {
+    if (tablero1[entrada1][entrada2] == 'X') {
+      printf("Atinaste!!\n");
+      tableroPrincipal[entrada1][entrada2] = 'H';
+      tablero2[entrada1][entrada2] = 'H';
+    } else {
+      printf("Agua!\n");
+      tableroPrincipal[entrada1][entrada2] = 'M';
+      tablero2[entrada1][entrada2] = 'M';
+    }
+  }
+}
+
+// Funcion para acomodar barcos de la IA
+void Acomodo_IA(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
+                int tableroPrincipal[][COLUMNAS]) {
+  srand(time(NULL));
+  int orientacion;
+  int entrada1, entrada2;
+  int barcos = 3;
+  while (barcos > 0) {
+    orientacion = rand() % 2 + 1;
+    entrada1 = rand() % 6 + 1;
+    entrada2 = rand() % 6 + 1;
+    if (VerificadorDeColisiones(tablero1, tablero2, 2, orientacion, entrada1,
+                                entrada2)) {
+      EstablecerBarcos(tablero2, orientacion, entrada1,
+                       entrada2); // Cambiado de tablero2 a tablero1
+      barcos--;
+    }
+  }
+}
+
+// Funcion para solicitar entrada
 void SolicitarEntrada(int *entrada1, int *entrada2) {
   char letra;
   int numero;
@@ -119,8 +178,7 @@ void EstablecerBarcos(int tablero[][COLUMNAS], int orientacion, int entrada1,
 }
 
 void AcomodarBarcos(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
-                    int jugadores) {
-
+                    int tableroPrincipal[][COLUMNAS], int jugadores) {
   for (int jugador = 1; jugador <= jugadores; jugador++) {
     int barcos = 3;
     int orientacion;
@@ -137,32 +195,21 @@ void AcomodarBarcos(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
         if (VerificadorDeColisiones(tablero1, tablero2, jugador, orientacion,
                                     entrada1, entrada2)) {
           EstablecerBarcos(tablero1, orientacion, entrada1, entrada2);
+          EstablecerBarcos(tableroPrincipal, orientacion, entrada1, entrada2);
           barcos--;
         }
       } else {
-        if (VerificadorDeColisiones(tablero1, tablero2, jugador, orientacion,
+        if (VerificadorDeColisiones(tablero2, tablero1, jugador, orientacion,
                                     entrada1, entrada2)) {
-          EstablecerBarcos(tablero1, orientacion, entrada1, entrada2);
+          EstablecerBarcos(tablero2, orientacion, entrada1, entrada2);
+          EstablecerBarcos(tableroPrincipal, orientacion, entrada1, entrada2);
+
           barcos--;
         }
       }
     }
   }
 }
-
-// // Funcion para disparar
-// int disparo_IA(int tablero[][COLUMNAS]) {
-//   int numero = 0;
-//   int letra = 0;
-//   srand(time(NULL));
-//   numero = (1 + rand() % 6);
-//   letra = (1 + rand() % 6);
-//   printf("%d,%d\n", numero, letra);
-//   tablero[numero][letra] = 88;
-//   if (tablero[numero][letra] == 254) {
-//     tablero[numero][letra] = 42;
-//   }
-// }
 
 int VerificadorDeColisiones(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
                             int jugador, int orientacion, int entrada1,
@@ -185,8 +232,11 @@ int VerificadorDeColisiones(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
         otroTablero[entrada1][entrada2] == 'X' ||
         otroTablero[entrada1][entrada2 + 1] == 'X' ||
         otroTablero[entrada1][entrada2 + 2] == 'X') {
-      printf("Colisión detectada o barco fuera del tablero. Por favor, ingresa "
-             "otra coordenada.\n");
+      if (jugador == 1) {
+        printf(
+            "Colisión detectada o barco fuera del tablero. Por favor, ingresa "
+            "otra coordenada.\n");
+      }
       return 0;
     }
     break;
@@ -197,8 +247,11 @@ int VerificadorDeColisiones(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
         otroTablero[entrada1][entrada2] == 'X' ||
         otroTablero[entrada1 + 1][entrada2] == 'X' ||
         otroTablero[entrada1 + 2][entrada2] == 'X') {
-      printf("Colisión detectada o barco fuera del tablero. Por favor, ingresa "
-             "otra coordenada.\n");
+      if (jugador == 1) {
+        printf(
+            "Colisión detectada o barco fuera del tablero. Por favor, ingresa "
+            "otra coordenada.\n");
+      }
       return 0;
     }
     break;
@@ -208,6 +261,43 @@ int VerificadorDeColisiones(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
   return 1;
 }
 
+char IndiceALetra(int indice) { return 'A' + indice - 1; }
+
+void Disparo_IA(int tablero[][COLUMNAS], int tableroPrincipal[][COLUMNAS]) {
+  int entrada1, entrada2;
+  printf("Es el turno de la IA de atacar...\n");
+  entrada1 = rand() % 6 + 1;
+  entrada2 = rand() % 6 + 1;
+  if (tablero[entrada1][entrada2] == 'X') {
+    printf("La IA atinó en las coordenadas (%c %d)!!\n", IndiceALetra(entrada1),
+           entrada2);
+    tableroPrincipal[entrada1][entrada2] = 'H';
+  } else {
+    printf("La IA falló en las coordenadas (%c, %d)!!\n",
+           IndiceALetra(entrada1), entrada2);
+    tableroPrincipal[entrada1][entrada2] = 'M';
+  }
+}
+
+void Juego(int tablero1[][COLUMNAS], int tablero2[][COLUMNAS],
+           int tableroPrincipal[][COLUMNAS], int jugadores) {
+  int turno = 0; // 0 para el jugador 1, 1 para el jugador 2 (IA)
+  while (1) {
+    if (turno == 0) {
+      Disparo(tablero1, tablero2, tableroPrincipal, 1);
+      Impresion(tableroPrincipal);
+    } else if (jugadores == 2) {
+      Disparo(tablero1, tablero2, tableroPrincipal, 2);
+      Impresion(tablero2);
+    } else {
+      Disparo_IA(tablero1, tableroPrincipal);
+      Impresion(tableroPrincipal);
+    }
+
+    // Cambiar el turno
+    turno = 1 - turno;
+  }
+}
 // Funcion para imprimir tablero
 void Impresion(int tablero[][COLUMNAS]) {
   for (int i = 0; i < 8; i++) {
@@ -222,10 +312,15 @@ void Impresion(int tablero[][COLUMNAS]) {
 void InicioJuego(int jugadores) {
   int tableroJuego[FILAS][COLUMNAS];
   int tableroJuego2[FILAS][COLUMNAS];
-  InicializarTablero(tableroJuego);
-  Impresion(tableroJuego);
-  AcomodarBarcos(tableroJuego, tableroJuego2, jugadores);
-  Impresion(tableroJuego);
+  int tableroPrincipal[FILAS][COLUMNAS];
+  InicializarTablero(tableroPrincipal);
+  AcomodarBarcos(tableroJuego, tableroJuego2, tableroPrincipal, jugadores);
+  Impresion(tableroPrincipal);
+  if (jugadores == 1) {
+    Acomodo_IA(tableroJuego, tableroJuego2, tableroPrincipal);
+  }
+  Impresion(tableroJuego2);
+  Juego(tableroJuego, tableroJuego2, tableroPrincipal, jugadores);
 }
 
 // Funcion para menu
